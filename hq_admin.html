@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>LOVA — HQ Control Center</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #1a1f2e; --navy2: #2d3447; --red: #c0392b; --red-soft: #fdf0ef; --red-border: #f5c6c2;
+      --canvas: #f7f5f0; --surface: #ffffff; --border: #e4e1db; --border-soft: #ede9e3;
+      --text: #1a1f2e; --text-2: #5a5750; --text-3: #9a9690;
+      --s-green: #166534; --s-green-bg: #dcfce7; --s-green-border: #86efac;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'Plus Jakarta Sans', 'Sarabun', sans-serif; background: var(--canvas); min-height: 100vh; padding-bottom: 60px; }
+    
+    .top-nav { background: var(--navy); padding: 13px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .nav-left { display: flex; align-items: baseline; gap: 10px; }
+    .nav-wordmark { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: #fff; letter-spacing: 1px; }
+    .nav-tag { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.4); letter-spacing: 1.5px; text-transform: uppercase; }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .nav-user { font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.55); }
+    .btn-logout { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.12); padding: 6px 12px; border-radius: 6px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 11px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+    
+    .content { padding: 16px; max-width: 768px; margin: 0 auto; }
+    
+    .tab-nav { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; scrollbar-width: none; }
+    .tab-nav::-webkit-scrollbar { display: none; }
+    .tab-btn { background: var(--surface); color: var(--text-3); border: 1px solid var(--border); padding: 12px 18px; border-radius: 9px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.15s; white-space: nowrap; flex: 1; text-align: center;}
+    .tab-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+    
+    .admin-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(26,31,46,0.04); }
+    .section-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-soft); padding-bottom: 10px; }
+    
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+    @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+    
+    .input-label { font-size: 10px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: block; }
+    .input-box { width: 100%; height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--canvas); color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 500; outline: none; transition: 0.15s; -webkit-appearance: none; }
+    .input-box:focus { border-color: var(--navy); background: var(--surface); }
+    
+    .btn-primary { background: var(--navy); color: #fff; width: 100%; height: 48px; border: none; border-radius: 9px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.5px; cursor: pointer; transition: 0.15s; text-transform: uppercase; }
+    .btn-primary:active { transform: scale(0.98); background: var(--navy2); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-cancel-edit { background: transparent; color: var(--text-3); border: 1px solid var(--border); width: 100%; height: 48px; border-radius: 9px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.5px; cursor: pointer; transition: 0.15s; text-transform: uppercase; margin-top: 8px; display: none;}
+    .btn-cancel-edit:active { background: var(--border-soft); }
+    
+    .data-table-wrapper { overflow-x: auto; margin-top: 16px; border: 1px solid var(--border); border-radius: 8px; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
+    .data-table th { background: var(--canvas); padding: 12px; color: var(--text-3); font-weight: 600; text-transform: uppercase; border-bottom: 1px solid var(--border); letter-spacing: 0.5px;}
+    .data-table td { padding: 12px; color: var(--text); border-bottom: 1px solid var(--border-soft); font-weight: 500;}
+    .data-table tr:last-child td { border-bottom: none; }
+    
+    .status-active { background: var(--s-green-bg); color: var(--s-green); padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; border: 1px solid var(--s-green-border);}
+    .status-inactive { background: var(--red-soft); color: var(--red); padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; border: 1px solid var(--red-border);}
+    
+    .btn-edit-subtle { background: none; border: none; color: var(--text-3); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; text-decoration: underline; padding: 0; margin-right: 12px; opacity: 0.6; transition: 0.2s; }
+    .btn-edit-subtle:hover { opacity: 1; color: var(--navy); }
+    
+    .btn-small { background: var(--canvas); color: var(--text-2); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 10px; font-weight: 600; cursor: pointer; text-transform: uppercase; transition: 0.15s; }
+    .btn-small:active { background: var(--border-soft); }
+    .loading { text-align: center; color: var(--text-3); padding: 40px; font-size: 13px; font-weight: 500; }
+    
+    .action-cell { display: flex; align-items: center; }
+  </style>
+</head>
+<body>
+
+  <nav class="top-nav">
+    <div class="nav-left">
+      <div class="nav-wordmark">LOVA</div>
+      <div class="nav-tag">HQ Center</div>
+    </div>
+    <div class="nav-right">
+      <div class="nav-user" id="navUser"></div>
+      <button class="btn-logout" onclick="logout()">Lock System</button>
+    </div>
+  </nav>
+
+  <div class="content">
+    <div class="tab-nav">
+      <button class="tab-btn active" id="tabBtnUsers" onclick="switchTab('users')">Access Control</button>
+      <button class="tab-btn" id="tabBtnInventory" onclick="switchTab('inventory')">Inventory</button>
+      <button class="tab-btn" id="tabBtnSettings" onclick="switchTab('settings')">Global Settings</button>
+    </div>
+
+    <div id="view-users">
+      <div class="admin-card">
+        <div class="section-title" id="userFormTitle">Provision New User</div>
+        <div class="form-grid">
+          <div>
+            <span class="input-label">Full Name</span>
+            <input type="text" id="newUserName" class="input-box" placeholder="e.g. Chef Marco">
+          </div>
+          <div>
+            <span class="input-label">Assigned Branch</span>
+            <input type="text" id="newUserBranch" class="input-box" placeholder="e.g. BIANCA EMSPHERE">
+          </div>
+          <div>
+            <span class="input-label">Secure PIN Code</span>
+            <input type="text" id="newUserPin" class="input-box" placeholder="4-6 Digits" inputmode="numeric">
+          </div>
+          <div>
+            <span class="input-label">System Role</span>
+            <select id="newUserRole" class="input-box">
+              <option value="Staff">Staff (Kitchen)</option>
+              <option value="Admin">Admin (Manager)</option>
+              <option value="Driver">Driver (Logistics)</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-primary" id="btnAddUser" onclick="submitNewUser()">+ Add Secure User</button>
+        <button class="btn-cancel-edit" id="btnCancelUserEdit" onclick="cancelUserEdit()">Cancel Edit</button>
+      </div>
+
+      <div class="admin-card">
+        <div class="section-title">Active Directory</div>
+        <div class="data-table-wrapper" id="usersTableContainer">
+          <div class="loading">Loading directory...</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-inventory" style="display:none;">
+      <div class="admin-card">
+        <div class="section-title" id="prodFormTitle">Push New Product to Database</div>
+        <div class="form-grid">
+          <div style="grid-column: 1 / -1;">
+            <span class="input-label">Item Name</span>
+            <input type="text" id="newProdName" class="input-box" placeholder="e.g. Truffle Ravioli">
+          </div>
+          <div>
+            <span class="input-label">Description / Size</span>
+            <input type="text" id="newProdDesc" class="input-box" placeholder="e.g. Box (24 pcs)">
+          </div>
+          <div>
+            <span class="input-label">Category</span>
+            <select id="newProdCat" class="input-box" onchange="checkCustomCategory()">
+              <option value="PASTA">PASTA</option>
+              <option value="BREADS & DOUGH">BREADS & DOUGH</option>
+              <option value="PASTRY">PASTRY</option>
+              <option value="SEAFOOD">SEAFOOD</option>
+              <option value="PACKAGING">PACKAGING</option>
+              <option value="OTHER">+ Add New Category...</option>
+            </select>
+            <input type="text" id="newProdCatCustom" class="input-box" placeholder="e.g. SAUCES" style="display:none; margin-top:8px;">
+          </div>
+        </div>
+        <button class="btn-primary" id="btnAddProduct" onclick="submitNewProduct()">+ Append to Master Inventory</button>
+        <button class="btn-cancel-edit" id="btnCancelProdEdit" onclick="cancelProdEdit()">Cancel Edit</button>
+      </div>
+      
+      <div class="admin-card">
+        <div class="section-title">Master Inventory List</div>
+        <div class="data-table-wrapper" id="productsTableContainer">
+          <div class="loading">Loading inventory...</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-settings" style="display:none;">
+      <div class="admin-card">
+        <div class="section-title">System Routing & Notifications</div>
+        <div>
+          <span class="input-label">Master Dispatch Email (Receives PDFs)</span>
+          <input type="text" id="masterEmailInput" class="input-box" placeholder="e.g. routing@lovahospitality.com">
+        </div>
+        <button class="btn-primary" id="btnUpdateEmail" style="margin-top: 12px;" onclick="updateMasterEmail()">Update Routing Rule</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzeZ8CLU50nn2MDA6EoU0ZKnu8qihZRU-LhAgsk9GVqa7TKA44J5fVx-lMu-oeFiGWqfA/exec";
+    const pin = sessionStorage.getItem("lova_pin") || "";
+    
+    if (!pin) window.location.href = "index.html";
+
+    let editingUserRow = null;
+    let editingProdRow = null;
+
+    async function callGAS(action, params = {}) {
+      const res = await fetch(GAS_URL + "?callback=_", {
+        method: "POST",
+        body: JSON.stringify({ action, ...params }),
+        headers: { "Content-Type": "text/plain" }
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      return data.result;
+    }
+
+    async function init() {
+      try {
+        const adminName = await callGAS("verifyAdmin", { pin });
+        document.getElementById("navUser").textContent = adminName;
+        await loadHQData();
+      } catch (err) {
+        alert("Session error: " + err.message);
+        window.location.href = "index.html";
+      }
+    }
+
+    function logout() {
+      sessionStorage.clear();
+      window.location.href = "index.html";
+    }
+
+    function switchTab(tab) {
+      ['users', 'inventory', 'settings'].forEach(t => {
+        document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1)).classList.remove('active');
+        document.getElementById('view-' + t).style.display = 'none';
+      });
+      document.getElementById('tabBtn' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+      document.getElementById('view-' + tab).style.display = 'block';
+    }
+
+    async function loadHQData() {
+      try {
+        const data = await callGAS("getHQData");
+        
+        let usersHtml = `<table class="data-table"><thead><tr><th>Name</th><th>Branch</th><th>Role</th><th>PIN</th><th>Status</th><th>Action</th></tr></thead><tbody>`;
+        data.users.forEach(u => {
+          const statClass = u.status === "Active" ? "status-active" : "status-inactive";
+          const actionBtn = u.status === "Active" ? 
+            `<button class="btn-small" onclick="toggleUser(${u.row}, 'Inactive')">Suspend</button>` : 
+            `<button class="btn-small" onclick="toggleUser(${u.row}, 'Active')">Restore</button>`;
+          
+          const editBtn = `<button class="btn-edit-subtle" onclick="triggerEditUser(${u.row}, '${u.name.replace(/'/g, "\\'")}', '${u.branch.replace(/'/g, "\\'")}', '${u.pin}', '${u.role}')">Edit</button>`;
+
+          usersHtml += `<tr>
+            <td>${u.name}</td><td>${u.branch}</td><td>${u.role}</td>
+            <td style="font-family:monospace;">${u.pin}</td>
+            <td><span class="${statClass}">${u.status}</span></td>
+            <td class="action-cell">${editBtn} ${actionBtn}</td>
+          </tr>`;
+        });
+        usersHtml += `</tbody></table>`;
+        document.getElementById("usersTableContainer").innerHTML = usersHtml;
+
+        let prodHtml = `<table class="data-table"><thead><tr><th>Item Name</th><th>Desc / Size</th><th>Category</th><th>Action</th></tr></thead><tbody>`;
+        data.products.forEach(p => {
+          const editBtn = `<button class="btn-edit-subtle" onclick="triggerEditProd(${p.row}, '${p.name.replace(/'/g, "\\'")}', '${(p.desc || "").replace(/'/g, "\\'")}', '${(p.cat || "").replace(/'/g, "\\'")}')">Edit</button>`;
+          
+          prodHtml += `<tr>
+            <td>${p.name}</td><td>${p.desc || "-"}</td><td>${p.cat}</td>
+            <td class="action-cell">${editBtn}</td>
+          </tr>`;
+        });
+        prodHtml += `</tbody></table>`;
+        document.getElementById("productsTableContainer").innerHTML = prodHtml;
+
+        document.getElementById("masterEmailInput").value = data.settings.email;
+      } catch (err) {
+        document.getElementById("usersTableContainer").innerHTML = `<div class="loading">Failed to load directory.</div>`;
+        document.getElementById("productsTableContainer").innerHTML = `<div class="loading">Failed to load inventory.</div>`;
+      }
+    }
+
+    // --- USER LOGIC ---
+    function triggerEditUser(row, name, branch, pin, role) {
+      editingUserRow = row;
+      document.getElementById("newUserName").value = name;
+      document.getElementById("newUserBranch").value = branch;
+      document.getElementById("newUserPin").value = pin;
+      document.getElementById("newUserRole").value = role;
+      
+      document.getElementById("userFormTitle").textContent = "Edit Existing User";
+      document.getElementById("btnAddUser").textContent = "Save User Updates";
+      document.getElementById("btnCancelUserEdit").style.display = "block";
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function cancelUserEdit() {
+      editingUserRow = null;
+      document.getElementById("newUserName").value = "";
+      document.getElementById("newUserBranch").value = "";
+      document.getElementById("newUserPin").value = "";
+      document.getElementById("newUserRole").value = "Staff";
+      
+      document.getElementById("userFormTitle").textContent = "Provision New User";
+      document.getElementById("btnAddUser").textContent = "+ Add Secure User";
+      document.getElementById("btnCancelUserEdit").style.display = "none";
+    }
+
+    async function submitNewUser() {
+      const payload = {
+        row: editingUserRow, 
+        name: document.getElementById("newUserName").value,
+        branch: document.getElementById("newUserBranch").value.toUpperCase(),
+        pin: document.getElementById("newUserPin").value,
+        role: document.getElementById("newUserRole").value
+      };
+      if (!payload.name || !payload.pin) { alert("Name and PIN are required."); return; }
+      
+      const btn = document.getElementById("btnAddUser");
+      btn.textContent = "Processing..."; btn.disabled = true;
+      try {
+        const msg = await callGAS(editingUserRow ? "hqUpdateUser" : "hqAddUser", { payload });
+        alert(msg);
+        cancelUserEdit(); 
+        await loadHQData();
+      } catch (err) { alert("Error: " + err.message); }
+      btn.textContent = editingUserRow ? "Save User Updates" : "+ Add Secure User"; 
+      btn.disabled = false;
+    }
+
+    async function toggleUser(rowIndex, newStatus) {
+      try {
+        await callGAS("hqToggleUserStatus", { row: rowIndex, status: newStatus });
+        await loadHQData();
+      } catch (err) { alert("Error updating user."); }
+    }
+
+    // --- PRODUCT LOGIC ---
+    function checkCustomCategory() {
+      const sel = document.getElementById("newProdCat").value;
+      document.getElementById("newProdCatCustom").style.display = (sel === "OTHER") ? "block" : "none";
+    }
+
+    function triggerEditProd(row, name, desc, cat) {
+      editingProdRow = row;
+      document.getElementById("newProdName").value = name;
+      document.getElementById("newProdDesc").value = desc;
+      
+      const catSelect = document.getElementById("newProdCat");
+      const exists = Array.from(catSelect.options).some(opt => opt.value === cat);
+      
+      if(exists) {
+        catSelect.value = cat;
+        document.getElementById("newProdCatCustom").style.display = "none";
+      } else {
+        catSelect.value = "OTHER";
+        document.getElementById("newProdCatCustom").style.display = "block";
+        document.getElementById("newProdCatCustom").value = cat;
+      }
+
+      document.getElementById("prodFormTitle").textContent = "Edit Existing Product";
+      document.getElementById("btnAddProduct").textContent = "Save Product Updates";
+      document.getElementById("btnCancelProdEdit").style.display = "block";
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function cancelProdEdit() {
+      editingProdRow = null;
+      document.getElementById("newProdName").value = "";
+      document.getElementById("newProdDesc").value = "";
+      document.getElementById("newProdCat").value = "PASTA";
+      document.getElementById("newProdCatCustom").style.display = "none";
+      
+      document.getElementById("prodFormTitle").textContent = "Push New Product to Database";
+      document.getElementById("btnAddProduct").textContent = "+ Append to Master Inventory";
+      document.getElementById("btnCancelProdEdit").style.display = "none";
+    }
+
+    async function submitNewProduct() {
+      let finalCat = document.getElementById("newProdCat").value;
+      if (finalCat === "OTHER") {
+        finalCat = document.getElementById("newProdCatCustom").value.toUpperCase();
+        if (!finalCat) { alert("Please type a new category name."); return; }
+      }
+
+      const payload = {
+        row: editingProdRow, 
+        name: document.getElementById("newProdName").value,
+        cat: finalCat,
+        desc: document.getElementById("newProdDesc").value
+      };
+      if (!payload.name) { alert("Product name is required."); return; }
+      
+      const btn = document.getElementById("btnAddProduct");
+      btn.textContent = "Processing..."; btn.disabled = true;
+      try {
+        const msg = await callGAS(editingProdRow ? "hqUpdateProduct" : "hqAddProduct", { payload });
+        alert(msg);
+        cancelProdEdit();
+        await loadHQData();
+      } catch (err) { alert("Error: " + err.message); }
+      btn.textContent = editingProdRow ? "Save Product Updates" : "+ Append to Master Inventory"; 
+      btn.disabled = false;
+    }
+
+    // --- SETTINGS LOGIC ---
+    async function updateMasterEmail() {
+      const email = document.getElementById("masterEmailInput").value;
+      if (!email) return;
+      
+      const btn = document.getElementById("btnUpdateEmail");
+      btn.textContent = "Updating..."; btn.disabled = true;
+      try {
+        const msg = await callGAS("hqUpdateSettings", { email });
+        alert(msg);
+      } catch (err) { alert("Error: " + err.message); }
+      btn.textContent = "Update Routing Rule"; btn.disabled = false;
+    }
+
+    init();
+  </script>
+</body>
+</html>
