@@ -15,7 +15,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body { font-family: 'Plus Jakarta Sans', 'Sarabun', sans-serif; background: var(--canvas); min-height: 100vh; padding-bottom: 60px; }
     
-    /* 🌟 NEW: Login Screen Styles */
+    /* 🌟 INTEGRATED LOGIN SCREEN STYLES */
     .login-wrapper { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
     .login-card { background: var(--surface); padding: 40px 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); width: 100%; max-width: 380px; border: 1px solid var(--border); text-align: center; }
     .login-title { font-size: 14px; color: var(--navy); font-weight: 800; letter-spacing: 1px; margin-bottom: 20px; text-transform: uppercase; }
@@ -75,7 +75,7 @@
 </head>
 <body>
 
-  <div id="loginScreen" class="login-wrapper">
+  <div id="loginScreen" class="login-wrapper" style="display:flex;">
     <div class="login-card">
       <div class="login-title">HQ SYSTEM ACCESS</div>
       <input type="password" id="hqPinInput" class="pin-input" placeholder="MASTER KEY" inputmode="numeric" pattern="[0-9]*">
@@ -207,10 +207,15 @@
     let editingUserRow = null;
     let editingProdRow = null;
 
-    // 🌟 NEW: Stops infinite loops and handles login properly
+    // 🌟 FIX: Safe Initialization (NO REDIRECTS)
     window.onload = function() {
       if (hqPin) {
+        document.getElementById("loginScreen").style.display = "none";
+        document.getElementById("appContainer").style.display = "block";
         performLogin(hqPin);
+      } else {
+        document.getElementById("loginScreen").style.display = "flex";
+        document.getElementById("appContainer").style.display = "none";
       }
     };
 
@@ -250,10 +255,11 @@
         await loadHQData();
       } catch (err) {
         // Login Failed
-        alert("Access Denied.");
+        alert("Access Denied. Incorrect PIN.");
         document.getElementById("btnLogin").textContent = "AUTHENTICATE"; 
         document.getElementById("btnLogin").disabled = false;
         sessionStorage.removeItem("hq_pin");
+        
         document.getElementById("loginScreen").style.display = "flex";
         document.getElementById("appContainer").style.display = "none";
       }
@@ -261,7 +267,7 @@
 
     function logout() {
       sessionStorage.removeItem("hq_pin");
-      location.reload(); // Reloads cleanly back to the login screen
+      location.reload(); // Safely reloads the page to show the login screen
     }
 
     function switchTab(tab) {
@@ -474,6 +480,7 @@
       } catch (err) { alert("Error: " + err.message); }
       btn.textContent = "Update Routing Rule"; btn.disabled = false;
     }
+
   </script>
 </body>
 </html>
