@@ -15,11 +15,15 @@
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body { font-family: 'Plus Jakarta Sans', 'Sarabun', sans-serif; background: var(--canvas); min-height: 100vh; padding-bottom: 60px; }
     
-    /* 🌟 PERFECTED LOGIN SCREEN TO MATCH DRIVER/STAFF APPS */
+    /* 🌟 FIX: Login Screen Styles with separate Placeholder styling */
     .login-card { background: var(--surface); padding: 30px 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin: 40px auto; max-width: 380px; border: 1px solid var(--border); text-align: center; }
     .login-title { font-size: 13px; color: var(--text-3); font-weight: 800; letter-spacing: 1px; margin-bottom: 20px; text-transform: uppercase; }
-    .pin-input { width: 100%; height: 55px; border-radius: 8px; border: 1px solid var(--border); background: var(--canvas); text-align: center; letter-spacing: 6px; font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 20px; outline: none; transition: 0.2s; -webkit-appearance: none; font-family: 'Plus Jakarta Sans', sans-serif;}
+    
+    .pin-input { width: 100%; height: 55px; border-radius: 8px; border: 1px solid var(--border); background: var(--canvas); text-align: center; letter-spacing: 8px; font-size: 24px; font-weight: 800; color: var(--text); margin-bottom: 20px; outline: none; transition: 0.2s; -webkit-appearance: none; font-family: 'Plus Jakarta Sans', sans-serif;}
     .pin-input:focus { border-color: var(--navy); background: var(--surface); }
+    
+    /* This specifically targets the "MASTER KEY" text to keep it small and neat */
+    .pin-input::placeholder { letter-spacing: 2px; font-size: 14px; font-weight: 600; color: var(--text-3); }
 
     .top-nav { background: var(--navy); padding: 13px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
     .nav-left { display: flex; align-items: baseline; gap: 10px; }
@@ -306,7 +310,6 @@
 
         let prodHtml = `<table class="data-table"><thead><tr><th>Item Name</th><th>Desc / Size</th><th>Category</th><th>Action</th></tr></thead><tbody>`;
         data.products.forEach(p => {
-          // 🌟 NEW: Passes the image data into the edit trigger
           const editBtn = `<button class="btn-edit-subtle" onclick="triggerEditProd(${p.row}, '${p.name.replace(/'/g, "\\'")}', '${(p.desc || "").replace(/'/g, "\\'")}', '${(p.cat || "").replace(/'/g, "\\'")}', '${(p.img || "").replace(/'/g, "\\'")}')">Edit</button>`;
           
           prodHtml += `<tr>
@@ -324,7 +327,6 @@
       }
     }
 
-    // --- USER LOGIC ---
     function checkCustomBranch() {
       const sel = document.getElementById("newUserBranch").value;
       document.getElementById("newUserBranchCustom").style.display = (sel === "OTHER") ? "block" : "none";
@@ -402,13 +404,11 @@
       } catch (err) { alert("Error updating user."); }
     }
 
-    // --- PRODUCT LOGIC ---
     function checkCustomCategory() {
       const sel = document.getElementById("newProdCat").value;
       document.getElementById("newProdCatCustom").style.display = (sel === "OTHER") ? "block" : "none";
     }
 
-    // 🌟 NEW: Populates the Image Link field when editing
     function triggerEditProd(row, name, desc, cat, img) {
       editingProdRow = row;
       document.getElementById("newProdName").value = name;
@@ -458,7 +458,7 @@
         name: document.getElementById("newProdName").value,
         cat: finalCat,
         desc: document.getElementById("newProdDesc").value,
-        img: document.getElementById("newProdImg").value // 🌟 NEW: Sends the image to backend
+        img: document.getElementById("newProdImg").value 
       };
       if (!payload.name) { alert("Product name is required."); return; }
       
@@ -474,7 +474,6 @@
       btn.disabled = false;
     }
 
-    // --- SETTINGS LOGIC ---
     async function updateMasterEmail() {
       const email = document.getElementById("masterEmailInput").value;
       if (!email) return;
