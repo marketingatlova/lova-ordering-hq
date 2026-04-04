@@ -15,6 +15,13 @@
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body { font-family: 'Plus Jakarta Sans', 'Sarabun', sans-serif; background: var(--canvas); min-height: 100vh; padding-bottom: 60px; }
     
+    /* 🌟 NEW: Login Screen Styles */
+    .login-wrapper { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+    .login-card { background: var(--surface); padding: 40px 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); width: 100%; max-width: 380px; border: 1px solid var(--border); text-align: center; }
+    .login-title { font-size: 14px; color: var(--navy); font-weight: 800; letter-spacing: 1px; margin-bottom: 20px; text-transform: uppercase; }
+    .pin-input { width: 100%; height: 55px; border-radius: 8px; border: 1px solid var(--border); background: var(--canvas); text-align: center; letter-spacing: 8px; font-size: 24px; font-weight: 800; color: var(--text); margin-bottom: 20px; outline: none; transition: 0.2s; -webkit-appearance: none;}
+    .pin-input:focus { border-color: var(--navy); background: var(--surface); }
+
     .top-nav { background: var(--navy); padding: 13px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
     .nav-left { display: flex; align-items: baseline; gap: 10px; }
     .nav-wordmark { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: #fff; letter-spacing: 1px; }
@@ -68,132 +75,144 @@
 </head>
 <body>
 
-  <nav class="top-nav">
-    <div class="nav-left">
-      <div class="nav-wordmark">LOVA</div>
-      <div class="nav-tag">HQ Center</div>
+  <div id="loginScreen" class="login-wrapper">
+    <div class="login-card">
+      <div class="login-title">HQ SYSTEM ACCESS</div>
+      <input type="password" id="hqPinInput" class="pin-input" placeholder="MASTER KEY" inputmode="numeric" pattern="[0-9]*">
+      <button class="btn-primary" id="btnLogin" onclick="loginHQ()">AUTHENTICATE</button>
     </div>
-    <div class="nav-right">
-      <div class="nav-user" id="navUser"></div>
-      <button class="btn-logout" onclick="logout()">Lock System</button>
-    </div>
-  </nav>
+  </div>
 
-  <div class="content">
-    <div class="tab-nav">
-      <button class="tab-btn active" id="tabBtnUsers" onclick="switchTab('users')">Access Control</button>
-      <button class="tab-btn" id="tabBtnInventory" onclick="switchTab('inventory')">Inventory</button>
-      <button class="tab-btn" id="tabBtnSettings" onclick="switchTab('settings')">Global Settings</button>
-    </div>
+  <div id="appContainer" style="display:none;">
+    <nav class="top-nav">
+      <div class="nav-left">
+        <div class="nav-wordmark">LOVA</div>
+        <div class="nav-tag">HQ Center</div>
+      </div>
+      <div class="nav-right">
+        <div class="nav-user" id="navUser"></div>
+        <button class="btn-logout" onclick="logout()">Lock System</button>
+      </div>
+    </nav>
 
-    <div id="view-users">
-      <div class="admin-card">
-        <div class="section-title" id="userFormTitle">Provision New User</div>
-        <div class="form-grid">
-          <div>
-            <span class="input-label">Full Name</span>
-            <input type="text" id="newUserName" class="input-box" placeholder="e.g. Chef Marco">
-          </div>
-          <div>
-            <span class="input-label">Assigned Branch</span>
-            <select id="newUserBranch" class="input-box" onchange="checkCustomBranch()">
-              <option value="HQ">HQ</option>
-              <option value="BIANCA EMSPHERE">BIANCA EMSPHERE</option>
-              <option value="BIANCA ICONSIAM">BIANCA ICONSIAM</option>
-              <option value="BIANCA SIAM PARAGON">BIANCA SIAM PARAGON</option>
-              <option value="BIANCA ONE BANGKOK">BIANCA ONE BANGKOK</option>
-              <option value="LAVA">LAVA</option>
-              <option value="HOLYBELLY">HOLYBELLY</option>
-              <option value="CK">CK</option>
-              <option value="DRIVER">DRIVER</option>
-              <option value="OTHER">+ Add New Branch...</option>
-            </select>
-            <input type="text" id="newUserBranchCustom" class="input-box" placeholder="e.g. NEW BRANCH" style="display:none; margin-top:8px;">
-          </div>
-          <div>
-            <span class="input-label">Secure PIN Code</span>
-            <input type="text" id="newUserPin" class="input-box" placeholder="4-6 Digits" inputmode="numeric">
-          </div>
-          <div>
-            <span class="input-label">System Role</span>
-            <select id="newUserRole" class="input-box">
-              <option value="Staff">Staff (Kitchen)</option>
-              <option value="Admin">Admin (Manager)</option>
-              <option value="Driver">Driver (Logistics)</option>
-            </select>
-          </div>
-        </div>
-        <button class="btn-primary" id="btnAddUser" onclick="submitNewUser()">+ Add Secure User</button>
-        <button class="btn-cancel-edit" id="btnCancelUserEdit" onclick="cancelUserEdit()">Cancel Edit</button>
+    <div class="content">
+      <div class="tab-nav">
+        <button class="tab-btn active" id="tabBtnUsers" onclick="switchTab('users')">Access Control</button>
+        <button class="tab-btn" id="tabBtnInventory" onclick="switchTab('inventory')">Inventory</button>
+        <button class="tab-btn" id="tabBtnSettings" onclick="switchTab('settings')">Global Settings</button>
       </div>
 
-      <div class="admin-card">
-        <div class="section-title">Active Directory</div>
-        <div class="data-table-wrapper" id="usersTableContainer">
-          <div class="loading">Loading directory...</div>
+      <div id="view-users">
+        <div class="admin-card">
+          <div class="section-title" id="userFormTitle">Provision New User</div>
+          <div class="form-grid">
+            <div>
+              <span class="input-label">Full Name</span>
+              <input type="text" id="newUserName" class="input-box" placeholder="e.g. Chef Marco">
+            </div>
+            <div>
+              <span class="input-label">Assigned Branch</span>
+              <select id="newUserBranch" class="input-box" onchange="checkCustomBranch()">
+                <option value="HQ">HQ</option>
+                <option value="BIANCA EMSPHERE">BIANCA EMSPHERE</option>
+                <option value="BIANCA ICONSIAM">BIANCA ICONSIAM</option>
+                <option value="BIANCA SIAM PARAGON">BIANCA SIAM PARAGON</option>
+                <option value="BIANCA ONE BANGKOK">BIANCA ONE BANGKOK</option>
+                <option value="LAVA">LAVA</option>
+                <option value="HOLYBELLY">HOLYBELLY</option>
+                <option value="CK">CK</option>
+                <option value="DRIVER">DRIVER</option>
+                <option value="OTHER">+ Add New Branch...</option>
+              </select>
+              <input type="text" id="newUserBranchCustom" class="input-box" placeholder="e.g. NEW BRANCH" style="display:none; margin-top:8px;">
+            </div>
+            <div>
+              <span class="input-label">Secure PIN Code</span>
+              <input type="text" id="newUserPin" class="input-box" placeholder="4-6 Digits" inputmode="numeric">
+            </div>
+            <div>
+              <span class="input-label">System Role</span>
+              <select id="newUserRole" class="input-box">
+                <option value="Staff">Staff (Kitchen)</option>
+                <option value="Admin">Admin (Manager)</option>
+                <option value="Driver">Driver (Logistics)</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn-primary" id="btnAddUser" onclick="submitNewUser()">+ Add Secure User</button>
+          <button class="btn-cancel-edit" id="btnCancelUserEdit" onclick="cancelUserEdit()">Cancel Edit</button>
+        </div>
+
+        <div class="admin-card">
+          <div class="section-title">Active Directory</div>
+          <div class="data-table-wrapper" id="usersTableContainer">
+            <div class="loading">Loading directory...</div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div id="view-inventory" style="display:none;">
-      <div class="admin-card">
-        <div class="section-title" id="prodFormTitle">Push New Product to Database</div>
-        <div class="form-grid">
-          <div style="grid-column: 1 / -1;">
-            <span class="input-label">Item Name</span>
-            <input type="text" id="newProdName" class="input-box" placeholder="e.g. Truffle Ravioli">
+      <div id="view-inventory" style="display:none;">
+        <div class="admin-card">
+          <div class="section-title" id="prodFormTitle">Push New Product to Database</div>
+          <div class="form-grid">
+            <div style="grid-column: 1 / -1;">
+              <span class="input-label">Item Name</span>
+              <input type="text" id="newProdName" class="input-box" placeholder="e.g. Truffle Ravioli">
+            </div>
+            <div>
+              <span class="input-label">Description / Size</span>
+              <input type="text" id="newProdDesc" class="input-box" placeholder="e.g. Box (24 pcs)">
+            </div>
+            <div>
+              <span class="input-label">Category</span>
+              <select id="newProdCat" class="input-box" onchange="checkCustomCategory()">
+                <option value="PASTA">PASTA</option>
+                <option value="BREADS & DOUGH">BREADS & DOUGH</option>
+                <option value="PASTRY">PASTRY</option>
+                <option value="SEAFOOD">SEAFOOD</option>
+                <option value="PACKAGING">PACKAGING</option>
+                <option value="OTHER">+ Add New Category...</option>
+              </select>
+              <input type="text" id="newProdCatCustom" class="input-box" placeholder="e.g. SAUCES" style="display:none; margin-top:8px;">
+            </div>
           </div>
+          <button class="btn-primary" id="btnAddProduct" onclick="submitNewProduct()">+ Append to Master Inventory</button>
+          <button class="btn-cancel-edit" id="btnCancelProdEdit" onclick="cancelProdEdit()">Cancel Edit</button>
+        </div>
+        
+        <div class="admin-card">
+          <div class="section-title">Master Inventory List</div>
+          <div class="data-table-wrapper" id="productsTableContainer">
+            <div class="loading">Loading inventory...</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-settings" style="display:none;">
+        <div class="admin-card">
+          <div class="section-title">System Routing & Notifications</div>
           <div>
-            <span class="input-label">Description / Size</span>
-            <input type="text" id="newProdDesc" class="input-box" placeholder="e.g. Box (24 pcs)">
+            <span class="input-label">Master Dispatch Email (Receives PDFs)</span>
+            <input type="text" id="masterEmailInput" class="input-box" placeholder="e.g. routing@lovahospitality.com">
           </div>
-          <div>
-            <span class="input-label">Category</span>
-            <select id="newProdCat" class="input-box" onchange="checkCustomCategory()">
-              <option value="PASTA">PASTA</option>
-              <option value="BREADS & DOUGH">BREADS & DOUGH</option>
-              <option value="PASTRY">PASTRY</option>
-              <option value="SEAFOOD">SEAFOOD</option>
-              <option value="PACKAGING">PACKAGING</option>
-              <option value="OTHER">+ Add New Category...</option>
-            </select>
-            <input type="text" id="newProdCatCustom" class="input-box" placeholder="e.g. SAUCES" style="display:none; margin-top:8px;">
-          </div>
-        </div>
-        <button class="btn-primary" id="btnAddProduct" onclick="submitNewProduct()">+ Append to Master Inventory</button>
-        <button class="btn-cancel-edit" id="btnCancelProdEdit" onclick="cancelProdEdit()">Cancel Edit</button>
-      </div>
-      
-      <div class="admin-card">
-        <div class="section-title">Master Inventory List</div>
-        <div class="data-table-wrapper" id="productsTableContainer">
-          <div class="loading">Loading inventory...</div>
+          <button class="btn-primary" id="btnUpdateEmail" style="margin-top: 12px;" onclick="updateMasterEmail()">Update Routing Rule</button>
         </div>
       </div>
     </div>
-
-    <div id="view-settings" style="display:none;">
-      <div class="admin-card">
-        <div class="section-title">System Routing & Notifications</div>
-        <div>
-          <span class="input-label">Master Dispatch Email (Receives PDFs)</span>
-          <input type="text" id="masterEmailInput" class="input-box" placeholder="e.g. routing@lovahospitality.com">
-        </div>
-        <button class="btn-primary" id="btnUpdateEmail" style="margin-top: 12px;" onclick="updateMasterEmail()">Update Routing Rule</button>
-      </div>
-    </div>
-
   </div>
 
   <script>
-    // Replace with your exact GAS API endpoint URL
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzeZ8CLU50nn2MDA6EoU0ZKnu8qihZRU-LhAgsk9GVqa7TKA44J5fVx-lMu-oeFiGWqfA/exec";
-    const pin = sessionStorage.getItem("lova_pin") || "";
-    
-    if (!pin) window.location.href = "index.html";
-
+    let hqPin = sessionStorage.getItem("hq_pin") || "";
     let editingUserRow = null;
     let editingProdRow = null;
+
+    // 🌟 NEW: Stops infinite loops and handles login properly
+    window.onload = function() {
+      if (hqPin) {
+        performLogin(hqPin);
+      }
+    };
 
     async function callGAS(action, params = {}) {
       const res = await fetch(GAS_URL + "?callback=_", {
@@ -206,20 +225,43 @@
       return data.result;
     }
 
-    async function init() {
+    async function loginHQ() {
+      const pinInput = document.getElementById("hqPinInput").value;
+      if (!pinInput) { alert("Please enter the Master Key."); return; }
+      
+      const btn = document.getElementById("btnLogin");
+      btn.textContent = "AUTHENTICATING..."; btn.disabled = true;
+      
+      await performLogin(pinInput);
+    }
+
+    async function performLogin(pinToTry) {
       try {
-        const adminName = await callGAS("verifyAdmin", { pin });
+        const adminName = await callGAS("verifyAdmin", { pin: pinToTry });
+        
+        // Login Successful
+        hqPin = pinToTry;
+        sessionStorage.setItem("hq_pin", hqPin);
+        
+        document.getElementById("loginScreen").style.display = "none";
+        document.getElementById("appContainer").style.display = "block";
         document.getElementById("navUser").textContent = adminName;
+        
         await loadHQData();
       } catch (err) {
-        alert("Session error: " + err.message);
-        window.location.href = "index.html";
+        // Login Failed
+        alert("Access Denied.");
+        document.getElementById("btnLogin").textContent = "AUTHENTICATE"; 
+        document.getElementById("btnLogin").disabled = false;
+        sessionStorage.removeItem("hq_pin");
+        document.getElementById("loginScreen").style.display = "flex";
+        document.getElementById("appContainer").style.display = "none";
       }
     }
 
     function logout() {
-      sessionStorage.clear();
-      window.location.href = "index.html";
+      sessionStorage.removeItem("hq_pin");
+      location.reload(); // Reloads cleanly back to the login screen
     }
 
     function switchTab(tab) {
@@ -432,8 +474,6 @@
       } catch (err) { alert("Error: " + err.message); }
       btn.textContent = "Update Routing Rule"; btn.disabled = false;
     }
-
-    init();
   </script>
 </body>
 </html>
