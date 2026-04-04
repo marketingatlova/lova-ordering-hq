@@ -96,7 +96,19 @@
           </div>
           <div>
             <span class="input-label">Assigned Branch</span>
-            <input type="text" id="newUserBranch" class="input-box" placeholder="e.g. BIANCA EMSPHERE">
+            <select id="newUserBranch" class="input-box" onchange="checkCustomBranch()">
+              <option value="HQ">HQ</option>
+              <option value="BIANCA EMSPHERE">BIANCA EMSPHERE</option>
+              <option value="BIANCA ICONSIAM">BIANCA ICONSIAM</option>
+              <option value="BIANCA SIAM PARAGON">BIANCA SIAM PARAGON</option>
+              <option value="BIANCA ONE BANGKOK">BIANCA ONE BANGKOK</option>
+              <option value="LAVA">LAVA</option>
+              <option value="HOLYBELLY">HOLYBELLY</option>
+              <option value="CK">CK</option>
+              <option value="DRIVER">DRIVER</option>
+              <option value="OTHER">+ Add New Branch...</option>
+            </select>
+            <input type="text" id="newUserBranchCustom" class="input-box" placeholder="e.g. NEW BRANCH" style="display:none; margin-top:8px;">
           </div>
           <div>
             <span class="input-label">Secure PIN Code</span>
@@ -174,6 +186,7 @@
   </div>
 
   <script>
+    // Replace with your exact GAS API endpoint URL
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzeZ8CLU50nn2MDA6EoU0ZKnu8qihZRU-LhAgsk9GVqa7TKA44J5fVx-lMu-oeFiGWqfA/exec";
     const pin = sessionStorage.getItem("lova_pin") || "";
     
@@ -261,12 +274,28 @@
     }
 
     // --- USER LOGIC ---
+    function checkCustomBranch() {
+      const sel = document.getElementById("newUserBranch").value;
+      document.getElementById("newUserBranchCustom").style.display = (sel === "OTHER") ? "block" : "none";
+    }
+
     function triggerEditUser(row, name, branch, pin, role) {
       editingUserRow = row;
       document.getElementById("newUserName").value = name;
-      document.getElementById("newUserBranch").value = branch;
       document.getElementById("newUserPin").value = pin;
       document.getElementById("newUserRole").value = role;
+      
+      const branchSelect = document.getElementById("newUserBranch");
+      const exists = Array.from(branchSelect.options).some(opt => opt.value === branch);
+      
+      if(exists) {
+        branchSelect.value = branch;
+        document.getElementById("newUserBranchCustom").style.display = "none";
+      } else {
+        branchSelect.value = "OTHER";
+        document.getElementById("newUserBranchCustom").style.display = "block";
+        document.getElementById("newUserBranchCustom").value = branch;
+      }
       
       document.getElementById("userFormTitle").textContent = "Edit Existing User";
       document.getElementById("btnAddUser").textContent = "Save User Updates";
@@ -277,7 +306,8 @@
     function cancelUserEdit() {
       editingUserRow = null;
       document.getElementById("newUserName").value = "";
-      document.getElementById("newUserBranch").value = "";
+      document.getElementById("newUserBranch").value = "HQ";
+      document.getElementById("newUserBranchCustom").style.display = "none";
       document.getElementById("newUserPin").value = "";
       document.getElementById("newUserRole").value = "Staff";
       
@@ -287,10 +317,16 @@
     }
 
     async function submitNewUser() {
+      let finalBranch = document.getElementById("newUserBranch").value;
+      if (finalBranch === "OTHER") {
+        finalBranch = document.getElementById("newUserBranchCustom").value.toUpperCase();
+        if (!finalBranch) { alert("Please type a new branch name."); return; }
+      }
+
       const payload = {
         row: editingUserRow, 
         name: document.getElementById("newUserName").value,
-        branch: document.getElementById("newUserBranch").value.toUpperCase(),
+        branch: finalBranch,
         pin: document.getElementById("newUserPin").value,
         role: document.getElementById("newUserRole").value
       };
