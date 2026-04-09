@@ -61,14 +61,14 @@
     .data-table td { padding: 12px; color: var(--text); border-bottom: 1px solid var(--border-soft); font-weight: 500;}
     .data-table tr:last-child td { border-bottom: none; }
     
-    /* 🌟 TABLE ALIGNMENT UTILITIES */
+    /* 🌟 FIX: Proper Table Alignment without breaking borders */
     .text-right { text-align: right !important; }
-    .action-cell { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+    .action-cell { text-align: right; white-space: nowrap; }
     
     .status-active { background: var(--s-green-bg); color: var(--s-green); padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; border: 1px solid var(--s-green-border);}
     .status-inactive { background: var(--red-soft); color: var(--red); padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; border: 1px solid var(--red-border);}
     
-    .btn-edit-subtle { background: none; border: none; color: var(--text-3); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; text-decoration: underline; padding: 0; opacity: 0.6; transition: 0.2s; }
+    .btn-edit-subtle { background: none; border: none; color: var(--text-3); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; text-decoration: underline; padding: 0; margin-right: 12px; opacity: 0.6; transition: 0.2s; }
     .btn-edit-subtle:hover { opacity: 1; color: var(--navy); }
     
     .btn-small { background: var(--canvas); color: var(--text-2); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 10px; font-weight: 600; cursor: pointer; text-transform: uppercase; transition: 0.15s; }
@@ -290,7 +290,6 @@
       try {
         var data = await callGAS("getHQData");
         
-        // 🌟 UPDATED: Right Aligned Action Column
         var usersHtml = '<table class="data-table"><thead><tr><th>Name</th><th>Branch</th><th>Role</th><th>PIN</th><th>Status</th><th class="text-right">Action</th></tr></thead><tbody>';
         data.users.forEach(function(u) {
           var statClass = u.status === "Active" ? "status-active" : "status-inactive";
@@ -301,7 +300,6 @@
         usersHtml += '</tbody></table>';
         document.getElementById("usersTableContainer").innerHTML = usersHtml;
 
-        // 🌟 UPDATED: Right Aligned Price and Action Columns
         var prodHtml = '<table class="data-table"><thead><tr><th>Item Name</th><th>Desc / Size</th><th>Category</th><th class="text-right">Price (THB)</th><th class="text-right">Action</th></tr></thead><tbody>';
         data.products.forEach(function(p) {
           var editBtn = '<button class="btn-edit-subtle" onclick="triggerEditProd(' + p.row + ', \'' + p.name.replace(/'/g, "\\'") + '\', \'' + (p.desc || "").replace(/'/g, "\\'") + '\', \'' + (p.cat || "").replace(/'/g, "\\'") + '\', \'' + (p.img || "").replace(/'/g, "\\'") + '\', ' + p.price + ')">Edit</button>';
