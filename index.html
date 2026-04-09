@@ -61,7 +61,6 @@
     .data-table td { padding: 12px; color: var(--text); border-bottom: 1px solid var(--border-soft); font-weight: 500;}
     .data-table tr:last-child td { border-bottom: none; }
     
-    /* 🌟 FIX: Proper Table Alignment without breaking borders */
     .text-right { text-align: right !important; }
     .action-cell { text-align: right; white-space: nowrap; }
     
@@ -300,10 +299,11 @@
         usersHtml += '</tbody></table>';
         document.getElementById("usersTableContainer").innerHTML = usersHtml;
 
-        var prodHtml = '<table class="data-table"><thead><tr><th>Item Name</th><th>Desc / Size</th><th>Category</th><th class="text-right">Price (THB)</th><th class="text-right">Action</th></tr></thead><tbody>';
+        // 🌟 FIX: Price (THB) is now left-aligned perfectly with the other columns!
+        var prodHtml = '<table class="data-table"><thead><tr><th>Item Name</th><th>Desc / Size</th><th>Category</th><th>Price (THB)</th><th class="text-right">Action</th></tr></thead><tbody>';
         data.products.forEach(function(p) {
           var editBtn = '<button class="btn-edit-subtle" onclick="triggerEditProd(' + p.row + ', \'' + p.name.replace(/'/g, "\\'") + '\', \'' + (p.desc || "").replace(/'/g, "\\'") + '\', \'' + (p.cat || "").replace(/'/g, "\\'") + '\', \'' + (p.img || "").replace(/'/g, "\\'") + '\', ' + p.price + ')">Edit</button>';
-          prodHtml += '<tr><td>' + p.name + '</td><td>' + (p.desc || "-") + '</td><td>' + p.cat + '</td><td class="text-right">฿' + p.price.toLocaleString(undefined, {minimumFractionDigits: 2}) + '</td><td class="action-cell">' + editBtn + '</td></tr>';
+          prodHtml += '<tr><td>' + p.name + '</td><td>' + (p.desc || "-") + '</td><td>' + p.cat + '</td><td>฿' + p.price.toLocaleString(undefined, {minimumFractionDigits: 2}) + '</td><td class="action-cell">' + editBtn + '</td></tr>';
         });
         prodHtml += '</tbody></table>';
         document.getElementById("productsTableContainer").innerHTML = prodHtml;
