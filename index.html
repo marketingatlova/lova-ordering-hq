@@ -15,14 +15,12 @@
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body { font-family: 'Plus Jakarta Sans', 'Sarabun', sans-serif; background: var(--canvas); min-height: 100vh; padding-bottom: 60px; }
     
-    /* 🌟 FIX: Login Screen Styles with separate Placeholder styling */
-    .login-card { background: var(--surface); padding: 30px 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin: 40px auto; max-width: 380px; border: 1px solid var(--border); text-align: center; }
+    .login-wrapper { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+    .login-card { background: var(--surface); padding: 30px 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); width: 100%; max-width: 380px; border: 1px solid var(--border); text-align: center; }
     .login-title { font-size: 13px; color: var(--text-3); font-weight: 800; letter-spacing: 1px; margin-bottom: 20px; text-transform: uppercase; }
     
     .pin-input { width: 100%; height: 55px; border-radius: 8px; border: 1px solid var(--border); background: var(--canvas); text-align: center; letter-spacing: 8px; font-size: 24px; font-weight: 800; color: var(--text); margin-bottom: 20px; outline: none; transition: 0.2s; -webkit-appearance: none; font-family: 'Plus Jakarta Sans', sans-serif;}
     .pin-input:focus { border-color: var(--navy); background: var(--surface); }
-    
-    /* This specifically targets the "MASTER KEY" text to keep it small and neat */
     .pin-input::placeholder { letter-spacing: 2px; font-size: 14px; font-weight: 600; color: var(--text-3); }
 
     .top-nav { background: var(--navy); padding: 13px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
@@ -78,11 +76,11 @@
 </head>
 <body>
 
-  <div id="loginScreen" style="padding: 15px; display:flex;">
+  <div id="loginScreen" class="login-wrapper" style="display:flex;">
     <div class="login-card">
       <div class="login-title">HQ SYSTEM ACCESS</div>
       <input type="password" id="hqPinInput" class="pin-input" placeholder="MASTER KEY" inputmode="numeric" pattern="[0-9]*">
-      <button class="btn-primary" id="btnLogin" onclick="loginHQ()">SECURE LOGIN</button>
+      <button class="btn-primary" id="btnLogin" style="width:100%; height:48px;" onclick="loginHQ()">SECURE LOGIN</button>
     </div>
   </div>
 
@@ -138,6 +136,7 @@
               <select id="newUserRole" class="input-box">
                 <option value="Staff">Staff (Kitchen)</option>
                 <option value="Admin">Admin (Manager)</option>
+                <option value="Finance">Finance (Audit)</option>
                 <option value="Driver">Driver (Logistics)</option>
               </select>
             </div>
@@ -178,12 +177,14 @@
               </select>
               <input type="text" id="newProdCatCustom" class="input-box" placeholder="e.g. SAUCES" style="display:none; margin-top:8px;">
             </div>
-            
-            <div style="grid-column: 1 / -1;">
+            <div>
               <span class="input-label">Image Link (Optional)</span>
-              <input type="text" id="newProdImg" class="input-box" placeholder="e.g. https://images.squarespace-cdn.com/.../image.jpg">
+              <input type="text" id="newProdImg" class="input-box" placeholder="e.g. https://...">
             </div>
-            
+            <div>
+              <span class="input-label">Unit Price (THB)</span>
+              <input type="number" id="newProdPrice" class="input-box" placeholder="e.g. 150" inputmode="numeric">
+            </div>
           </div>
           <button class="btn-primary" id="btnAddProduct" onclick="submitNewProduct()">+ Append to Master Inventory</button>
           <button class="btn-cancel-edit" id="btnCancelProdEdit" onclick="cancelProdEdit()">Cancel Edit</button>
@@ -211,10 +212,11 @@
   </div>
 
   <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzeZ8CLU50nn2MDA6EoU0ZKnu8qihZRU-LhAgsk9GVqa7TKA44J5fVx-lMu-oeFiGWqfA/exec";
-    let hqPin = sessionStorage.getItem("hq_pin") || "";
-    let editingUserRow = null;
-    let editingProdRow = null;
+    // 🌟 JAVASCRIPT: Safely updated with vars and full Pricing Logic
+    var GAS_URL = "https://script.google.com/macros/s/AKfycbzeZ8CLU50nn2MDA6EoU0ZKnu8qihZRU-LhAgsk9GVqa7TKA44J5fVx-lMu-oeFiGWqfA/exec";
+    var hqPin = sessionStorage.getItem("hq_pin") || "";
+    var editingUserRow = null;
+    var editingProdRow = null;
 
     window.onload = function() {
       if (hqPin) {
@@ -228,21 +230,18 @@
     };
 
     async function callGAS(action, params = {}) {
-      const res = await fetch(GAS_URL + "?callback=_", {
-        method: "POST",
-        body: JSON.stringify({ action, ...params }),
-        headers: { "Content-Type": "text/plain" }
-      });
-      const data = await res.json();
+      var bodyData = JSON.stringify(Object.assign({ action: action }, params));
+      var res = await fetch(GAS_URL + "?callback=_", { method: "POST", body: bodyData, headers: { "Content-Type": "text/plain" } });
+      var data = await res.json();
       if (data.error) throw new Error(data.error);
       return data.result;
     }
 
     async function loginHQ() {
-      const pinInput = document.getElementById("hqPinInput").value;
+      var pinInput = document.getElementById("hqPinInput").value;
       if (!pinInput) { alert("Please enter the Master Key."); return; }
       
-      const btn = document.getElementById("btnLogin");
+      var btn = document.getElementById("btnLogin");
       btn.textContent = "VERIFYING..."; btn.disabled = true;
       
       await performLogin(pinInput);
@@ -250,7 +249,7 @@
 
     async function performLogin(pinToTry) {
       try {
-        const adminName = await callGAS("verifyAdmin", { pin: pinToTry });
+        var adminName = await callGAS("verifyAdmin", { pin: pinToTry });
         
         hqPin = pinToTry;
         sessionStorage.setItem("hq_pin", hqPin);
@@ -262,8 +261,9 @@
         await loadHQData();
       } catch (err) {
         alert("Access Denied. Incorrect PIN.");
-        document.getElementById("btnLogin").textContent = "SECURE LOGIN"; 
-        document.getElementById("btnLogin").disabled = false;
+        var btn = document.getElementById("btnLogin");
+        btn.textContent = "SECURE LOGIN"; 
+        btn.disabled = false;
         sessionStorage.removeItem("hq_pin");
         
         document.getElementById("loginScreen").style.display = "flex";
@@ -277,7 +277,7 @@
     }
 
     function switchTab(tab) {
-      ['users', 'inventory', 'settings'].forEach(t => {
+      ['users', 'inventory', 'settings'].forEach(function(t) {
         document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1)).classList.remove('active');
         document.getElementById('view-' + t).style.display = 'none';
       });
@@ -287,48 +287,36 @@
 
     async function loadHQData() {
       try {
-        const data = await callGAS("getHQData");
+        var data = await callGAS("getHQData");
         
-        let usersHtml = `<table class="data-table"><thead><tr><th>Name</th><th>Branch</th><th>Role</th><th>PIN</th><th>Status</th><th>Action</th></tr></thead><tbody>`;
-        data.users.forEach(u => {
-          const statClass = u.status === "Active" ? "status-active" : "status-inactive";
-          const actionBtn = u.status === "Active" ? 
-            `<button class="btn-small" onclick="toggleUser(${u.row}, 'Inactive')">Suspend</button>` : 
-            `<button class="btn-small" onclick="toggleUser(${u.row}, 'Active')">Restore</button>`;
-          
-          const editBtn = `<button class="btn-edit-subtle" onclick="triggerEditUser(${u.row}, '${u.name.replace(/'/g, "\\'")}', '${u.branch.replace(/'/g, "\\'")}', '${u.pin}', '${u.role}')">Edit</button>`;
-
-          usersHtml += `<tr>
-            <td>${u.name}</td><td>${u.branch}</td><td>${u.role}</td>
-            <td style="font-family:monospace;">${u.pin}</td>
-            <td><span class="${statClass}">${u.status}</span></td>
-            <td class="action-cell">${editBtn} ${actionBtn}</td>
-          </tr>`;
+        var usersHtml = '<table class="data-table"><thead><tr><th>Name</th><th>Branch</th><th>Role</th><th>PIN</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+        data.users.forEach(function(u) {
+          var statClass = u.status === "Active" ? "status-active" : "status-inactive";
+          var actionBtn = u.status === "Active" ? '<button class="btn-small" onclick="toggleUser(' + u.row + ', \'Inactive\')">Suspend</button>' : '<button class="btn-small" onclick="toggleUser(' + u.row + ', \'Active\')">Restore</button>';
+          var editBtn = '<button class="btn-edit-subtle" onclick="triggerEditUser(' + u.row + ', \'' + u.name.replace(/'/g, "\\'") + '\', \'' + u.branch.replace(/'/g, "\\'") + '\', \'' + u.pin + '\', \'' + u.role + '\')">Edit</button>';
+          usersHtml += '<tr><td>' + u.name + '</td><td>' + u.branch + '</td><td>' + u.role + '</td><td style="font-family:monospace;">' + u.pin + '</td><td><span class="' + statClass + '">' + u.status + '</span></td><td class="action-cell">' + editBtn + ' ' + actionBtn + '</td></tr>';
         });
-        usersHtml += `</tbody></table>`;
+        usersHtml += '</tbody></table>';
         document.getElementById("usersTableContainer").innerHTML = usersHtml;
 
-        let prodHtml = `<table class="data-table"><thead><tr><th>Item Name</th><th>Desc / Size</th><th>Category</th><th>Action</th></tr></thead><tbody>`;
-        data.products.forEach(p => {
-          const editBtn = `<button class="btn-edit-subtle" onclick="triggerEditProd(${p.row}, '${p.name.replace(/'/g, "\\'")}', '${(p.desc || "").replace(/'/g, "\\'")}', '${(p.cat || "").replace(/'/g, "\\'")}', '${(p.img || "").replace(/'/g, "\\'")}')">Edit</button>`;
-          
-          prodHtml += `<tr>
-            <td>${p.name}</td><td>${p.desc || "-"}</td><td>${p.cat}</td>
-            <td class="action-cell">${editBtn}</td>
-          </tr>`;
+        var prodHtml = '<table class="data-table"><thead><tr><th>Item Name</th><th>Desc / Size</th><th>Category</th><th>Price (THB)</th><th>Action</th></tr></thead><tbody>';
+        data.products.forEach(function(p) {
+          // 🌟 THIS NOW CORRECTLY PASSES p.price TO THE EDIT TRIGGER
+          var editBtn = '<button class="btn-edit-subtle" onclick="triggerEditProd(' + p.row + ', \'' + p.name.replace(/'/g, "\\'") + '\', \'' + (p.desc || "").replace(/'/g, "\\'") + '\', \'' + (p.cat || "").replace(/'/g, "\\'") + '\', \'' + (p.img || "").replace(/'/g, "\\'") + '\', ' + p.price + ')">Edit</button>';
+          prodHtml += '<tr><td>' + p.name + '</td><td>' + (p.desc || "-") + '</td><td>' + p.cat + '</td><td>฿' + p.price.toLocaleString(undefined, {minimumFractionDigits: 2}) + '</td><td class="action-cell">' + editBtn + '</td></tr>';
         });
-        prodHtml += `</tbody></table>`;
+        prodHtml += '</tbody></table>';
         document.getElementById("productsTableContainer").innerHTML = prodHtml;
 
         document.getElementById("masterEmailInput").value = data.settings.email;
       } catch (err) {
-        document.getElementById("usersTableContainer").innerHTML = `<div class="loading">Failed to load directory.</div>`;
-        document.getElementById("productsTableContainer").innerHTML = `<div class="loading">Failed to load inventory.</div>`;
+        document.getElementById("usersTableContainer").innerHTML = '<div class="loading">Failed to load directory.</div>';
+        document.getElementById("productsTableContainer").innerHTML = '<div class="loading">Failed to load inventory.</div>';
       }
     }
 
     function checkCustomBranch() {
-      const sel = document.getElementById("newUserBranch").value;
+      var sel = document.getElementById("newUserBranch").value;
       document.getElementById("newUserBranchCustom").style.display = (sel === "OTHER") ? "block" : "none";
     }
 
@@ -338,8 +326,8 @@
       document.getElementById("newUserPin").value = pin;
       document.getElementById("newUserRole").value = role;
       
-      const branchSelect = document.getElementById("newUserBranch");
-      const exists = Array.from(branchSelect.options).some(opt => opt.value === branch);
+      var branchSelect = document.getElementById("newUserBranch");
+      var exists = Array.from(branchSelect.options).some(function(opt) { return opt.value === branch; });
       
       if(exists) {
         branchSelect.value = branch;
@@ -370,13 +358,13 @@
     }
 
     async function submitNewUser() {
-      let finalBranch = document.getElementById("newUserBranch").value;
+      var finalBranch = document.getElementById("newUserBranch").value;
       if (finalBranch === "OTHER") {
         finalBranch = document.getElementById("newUserBranchCustom").value.toUpperCase();
         if (!finalBranch) { alert("Please type a new branch name."); return; }
       }
 
-      const payload = {
+      var payload = {
         row: editingUserRow, 
         name: document.getElementById("newUserName").value,
         branch: finalBranch,
@@ -385,10 +373,10 @@
       };
       if (!payload.name || !payload.pin) { alert("Name and PIN are required."); return; }
       
-      const btn = document.getElementById("btnAddUser");
+      var btn = document.getElementById("btnAddUser");
       btn.textContent = "Processing..."; btn.disabled = true;
       try {
-        const msg = await callGAS(editingUserRow ? "hqUpdateUser" : "hqAddUser", { payload });
+        var msg = await callGAS(editingUserRow ? "hqUpdateUser" : "hqAddUser", { payload: payload });
         alert(msg);
         cancelUserEdit(); 
         await loadHQData();
@@ -405,18 +393,21 @@
     }
 
     function checkCustomCategory() {
-      const sel = document.getElementById("newProdCat").value;
+      var sel = document.getElementById("newProdCat").value;
       document.getElementById("newProdCatCustom").style.display = (sel === "OTHER") ? "block" : "none";
     }
 
-    function triggerEditProd(row, name, desc, cat, img) {
+    function triggerEditProd(row, name, desc, cat, img, price) {
       editingProdRow = row;
       document.getElementById("newProdName").value = name;
       document.getElementById("newProdDesc").value = desc;
       document.getElementById("newProdImg").value = img;
       
-      const catSelect = document.getElementById("newProdCat");
-      const exists = Array.from(catSelect.options).some(opt => opt.value === cat);
+      // 🌟 THIS CORRECTLY LOADS THE PRICE INTO THE EDIT BOX
+      document.getElementById("newProdPrice").value = price || "";
+      
+      var catSelect = document.getElementById("newProdCat");
+      var exists = Array.from(catSelect.options).some(function(opt) { return opt.value === cat; });
       
       if(exists) {
         catSelect.value = cat;
@@ -438,6 +429,7 @@
       document.getElementById("newProdName").value = "";
       document.getElementById("newProdDesc").value = "";
       document.getElementById("newProdImg").value = "";
+      document.getElementById("newProdPrice").value = "";
       document.getElementById("newProdCat").value = "PASTA";
       document.getElementById("newProdCatCustom").style.display = "none";
       
@@ -447,25 +439,27 @@
     }
 
     async function submitNewProduct() {
-      let finalCat = document.getElementById("newProdCat").value;
+      var finalCat = document.getElementById("newProdCat").value;
       if (finalCat === "OTHER") {
         finalCat = document.getElementById("newProdCatCustom").value.toUpperCase();
         if (!finalCat) { alert("Please type a new category name."); return; }
       }
 
-      const payload = {
+      var payload = {
         row: editingProdRow, 
         name: document.getElementById("newProdName").value,
         cat: finalCat,
         desc: document.getElementById("newProdDesc").value,
-        img: document.getElementById("newProdImg").value 
+        img: document.getElementById("newProdImg").value,
+        // 🌟 THIS CORRECTLY SAVES THE PRICE BACK TO GOOGLE SHEETS
+        price: parseFloat(document.getElementById("newProdPrice").value) || 0 
       };
       if (!payload.name) { alert("Product name is required."); return; }
       
-      const btn = document.getElementById("btnAddProduct");
+      var btn = document.getElementById("btnAddProduct");
       btn.textContent = "Processing..."; btn.disabled = true;
       try {
-        const msg = await callGAS(editingProdRow ? "hqUpdateProduct" : "hqAddProduct", { payload });
+        var msg = await callGAS(editingProdRow ? "hqUpdateProduct" : "hqAddProduct", { payload: payload });
         alert(msg);
         cancelProdEdit();
         await loadHQData();
@@ -475,13 +469,13 @@
     }
 
     async function updateMasterEmail() {
-      const email = document.getElementById("masterEmailInput").value;
+      var email = document.getElementById("masterEmailInput").value;
       if (!email) return;
       
-      const btn = document.getElementById("btnUpdateEmail");
+      var btn = document.getElementById("btnUpdateEmail");
       btn.textContent = "Updating..."; btn.disabled = true;
       try {
-        const msg = await callGAS("hqUpdateSettings", { email });
+        var msg = await callGAS("hqUpdateSettings", { email: email });
         alert(msg);
       } catch (err) { alert("Error: " + err.message); }
       btn.textContent = "Update Routing Rule"; btn.disabled = false;
